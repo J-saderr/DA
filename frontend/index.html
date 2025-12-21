@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự Đoán Bệnh Tiểu Đường - Diabetes Prediction</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-heartbeat"></i> Dự Đoán Bệnh Tiểu Đường</h1>
+                <p class="subtitle">Sử dụng Machine Learning để đánh giá nguy cơ mắc bệnh tiểu đường</p>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="predict">
+                <i class="fas fa-stethoscope"></i> Dự Đoán
+            </button>
+            <button class="nav-tab" data-tab="analysis">
+                <i class="fas fa-chart-bar"></i> Phân Tích Dữ Liệu
+            </button>
+            <button class="nav-tab" data-tab="about">
+                <i class="fas fa-info-circle"></i> Giới Thiệu
+            </button>
+        </nav>
+
+        <!-- Prediction Tab -->
+        <div id="predict-tab" class="tab-content active">
+            <div class="card">
+                <h2><i class="fas fa-clipboard-list"></i> Thông Tin Sức Khỏe</h2>
+                <form id="prediction-form" class="prediction-form">
+                    <div class="form-grid">
+                        <!-- Basic Info -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-user"></i> Thông Tin Cơ Bản</h3>
+                            
+                            <div class="form-group">
+                                <label for="Age">
+                                    <i class="fas fa-birthday-cake"></i> Tuổi
+                                    <span class="tooltip" data-tooltip="Tuổi được mã hóa: 1=18-24, 2=25-29, 3=30-34, 4=35-39, 5=40-44, 6=45-49, 7=50-54, 8=55-59, 9=60-64, 10=65-69, 11=70-74, 12=75-79, 13=80+">
+                                        <i class="fas fa-question-circle"></i>
+                                    </span>
+                                </label>
+                                <select id="Age" name="Age" required>
+                                    <option value="">Chọn tuổi</option>
+                                    <option value="1">18-24 tuổi</option>
+                                    <option value="2">25-29 tuổi</option>
+                                    <option value="3">30-34 tuổi</option>
+                                    <option value="4">35-39 tuổi</option>
+                                    <option value="5">40-44 tuổi</option>
+                                    <option value="6">45-49 tuổi</option>
+                                    <option value="7">50-54 tuổi</option>
+                                    <option value="8">55-59 tuổi</option>
+                                    <option value="9">60-64 tuổi</option>
+                                    <option value="10">65-69 tuổi</option>
+                                    <option value="11">70-74 tuổi</option>
+                                    <option value="12">75-79 tuổi</option>
+                                    <option value="13">80+ tuổi</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="Sex">
+                                    <i class="fas fa-venus-mars"></i> Giới Tính
+                                </label>
+                                <select id="Sex" name="Sex" required>
+                                    <option value="">Chọn giới tính</option>
+                                    <option value="0">Nữ</option>
+                                    <option value="1">Nam</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="BMI">
+                                    <i class="fas fa-weight"></i> BMI (Body Mass Index)
+                                    <span class="tooltip" data-tooltip="BMI = Cân nặng (kg) / (Chiều cao (m))²">
+                                        <i class="fas fa-question-circle"></i>
+                                    </span>
+                                </label>
+                                <input type="number" id="BMI" name="BMI" step="0.1" min="10" max="50" placeholder="VD: 25.5" required>
+                                <small class="form-hint">BMI bình thường: 18.5-24.9</small>
+                            </div>
+                        </div>
+
+                        <!-- Health Conditions -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-heart"></i> Tình Trạng Sức Khỏe</h3>
+                            
+                            <div class="form-group">
+                                <label for="HighBP">
+                                    <i class="fas fa-tint"></i> Huyết Áp Cao
+                                </label>
+                                <select id="HighBP" name="HighBP" required>
+                                    <option value="">Chọn</option>
+                                    <option value="0">Không</option>
+                                    <option value="1">Có</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="HighChol">
+                                    <i class="fas fa-vial"></i> Cholesterol Cao
+                                </label>
+                                <select id="HighChol" name="HighChol" required>
+                                    <option value="">Chọn</option>
+                                    <option value="0">Không</option>
+                                    <option value="1">Có</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="GenHlth">
+                                    <i class="fas fa-heartbeat"></i> Tình Trạng Sức Khỏe Tổng Quát
+                                </label>
+                                <select id="GenHlth" name="GenHlth" required>
+                                    <option value="">Chọn</option>
+                                    <option value="1">Rất tốt</option>
+                                    <option value="2">Tốt</option>
+                                    <option value="3">Khá tốt</option>
+                                    <option value="4">Trung bình</option>
+                                    <option value="5">Kém</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Lifestyle -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-running"></i> Lối Sống</h3>
+                            
+                            <div class="form-group">
+                                <label for="Smoker">
+                                    <i class="fas fa-smoking"></i> Hút Thuốc
+                                </label>
+                                <select id="Smoker" name="Smoker" required>
+                                    <option value="">Chọn</option>
+                                    <option value="0">Không</option>
+                                    <option value="1">Có</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="PhysActivity">
+                                    <i class="fas fa-dumbbell"></i> Hoạt Động Thể Chất
+                                </label>
+                                <select id="PhysActivity" name="PhysActivity" required>
+                                    <option value="">Chọn</option>
+                                    <option value="0">Không</option>
+                                    <option value="1">Có (ít nhất 10 phút/tuần)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="Fruits">
+                                    <i class="fas fa-apple-alt"></i> Ăn Trái Cây
+                                </label>
+                                <select id="Fruits" name="Fruits" required>
+                                    <option value="">Chọn</option>
+                                    <option value="0">Không hoặc ít</option>
+                                    <option value="1">Có (ít nhất 1 lần/ngày)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Mental & Physical Health -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-brain"></i> Sức Khỏe Tinh Thần & Thể Chất</h3>
+                            
+                            <div class="form-group">
+                                <label for="MentHlth">
+                                    <i class="fas fa-smile"></i> Sức Khỏe Tinh Thần (ngày/tháng)
+                                </label>
+                                <input type="number" id="MentHlth" name="MentHlth" min="0" max="30" placeholder="0-30 ngày" required>
+                                <small class="form-hint">Số ngày trong tháng qua bạn cảm thấy sức khỏe tinh thần không tốt</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="PhysHlth">
+                                    <i class="fas fa-band-aid"></i> Sức Khỏe Thể Chất (ngày/tháng)
+                                </label>
+                                <input type="number" id="PhysHlth" name="PhysHlth" min="0" max="30" placeholder="0-30 ngày" required>
+                                <small class="form-hint">Số ngày trong tháng qua bạn cảm thấy sức khỏe thể chất không tốt</small>
+                            </div>
+                        </div>
+
+                        <!-- Socioeconomic -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-graduation-cap"></i> Thông Tin Xã Hội</h3>
+                            
+                            <div class="form-group">
+                                <label for="Education">
+                                    <i class="fas fa-book"></i> Trình Độ Học Vấn
+                                </label>
+                                <select id="Education" name="Education" required>
+                                    <option value="">Chọn</option>
+                                    <option value="1">Chưa học cấp 1</option>
+                                    <option value="2">Học cấp 1</option>
+                                    <option value="3">Học cấp 2</option>
+                                    <option value="4">Học cấp 3</option>
+                                    <option value="5">Học đại học 1 năm</option>
+                                    <option value="6">Tốt nghiệp đại học</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="Income">
+                                    <i class="fas fa-dollar-sign"></i> Thu Nhập
+                                </label>
+                                <select id="Income" name="Income" required>
+                                    <option value="">Chọn</option>
+                                    <option value="1">Dưới $10,000</option>
+                                    <option value="2">$10,000-$15,000</option>
+                                    <option value="3">$15,000-$20,000</option>
+                                    <option value="4">$20,000-$25,000</option>
+                                    <option value="5">$25,000-$35,000</option>
+                                    <option value="6">$35,000-$50,000</option>
+                                    <option value="7">$50,000-$75,000</option>
+                                    <option value="8">Trên $75,000</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="predict-btn">
+                            <i class="fas fa-search"></i> Dự Đoán Nguy Cơ
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Làm Mới
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results-section" class="card results-card" style="display: none;">
+                <h2><i class="fas fa-chart-line"></i> Kết Quả Dự Đoán</h2>
+                <div id="results-content"></div>
+            </div>
+        </div>
+
+        <!-- Analysis Tab -->
+        <div id="analysis-tab" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-chart-bar"></i> Phân Tích Dữ Liệu</h2>
+                <div id="analysis-content">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Tab -->
+        <div id="about-tab" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-info-circle"></i> Giới Thiệu</h2>
+                <div class="about-content">
+                    <h3>Về Ứng Dụng</h3>
+                    <p>Ứng dụng này sử dụng Machine Learning để dự đoán nguy cơ mắc bệnh tiểu đường dựa trên các yếu tố sức khỏe và lối sống.</p>
+                    
+                    <h3>Mô Hình</h3>
+                    <div id="model-info" class="model-info">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> Đang tải thông tin model...
+                        </div>
+                    </div>
+
+                    <h3>Lưu Ý</h3>
+                    <div class="warning-box">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p><strong>Quan trọng:</strong> Kết quả dự đoán chỉ mang tính chất tham khảo và không thay thế cho chẩn đoán y tế chuyên nghiệp. Nếu bạn có lo ngại về sức khỏe, vui lòng tham khảo ý kiến bác sĩ.</p>
+                    </div>
+
+                    <h3>Các Yếu Tố Quan Trọng</h3>
+                    <ul class="factors-list">
+                        <li><i class="fas fa-check-circle"></i> BMI (Body Mass Index)</li>
+                        <li><i class="fas fa-check-circle"></i> Huyết áp cao</li>
+                        <li><i class="fas fa-check-circle"></i> Cholesterol cao</li>
+                        <li><i class="fas fa-check-circle"></i> Tuổi tác</li>
+                        <li><i class="fas fa-check-circle"></i> Hoạt động thể chất</li>
+                        <li><i class="fas fa-check-circle"></i> Chế độ ăn uống</li>
+                        <li><i class="fas fa-check-circle"></i> Tình trạng sức khỏe tổng quát</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
+
+

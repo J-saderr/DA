@@ -1,18 +1,78 @@
-## Getting Started
+# Diabetes Prediction Web Application
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+Ứng dụng web dự đoán bệnh tiểu đường sử dụng Machine Learning (XGBoost/LightGBM).
 
-## Folder Structure
+## Cấu Trúc Dự Án
 
-The workspace contains two folders by default, where:
+```
+DA/
+├── backend/
+│   ├── app.py              # Flask API server
+│   └── requirements.txt    # Python dependencies
+├── frontend/
+│   ├── index.html          # Trang chính
+│   ├── css/
+│   │   └── style.css       # Styles
+│   └── js/
+│       └── main.js         # JavaScript logic
+└── Data/
+    ├── models/             # Trained models (sau khi chạy test.py)
+    ├── load_model.py       # Model loading helper
+    ├── test.py             # Training script
+    └── utils.py            # Utility functions (random seed management)
+```
+## Cài Đặt
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+### 1. Backend
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
+### 2. Train Model (nếu chưa có)
 
-## Dependency Management
+```bash
+cd Data
+python test.py
+```
 
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+Model sẽ được lưu vào `Data/models/`:
+- `best_model.pkl` - XGBoost model đã được train
+- `scaler.pkl` - RobustScaler đã được fit
+- `feature_selector.pkl` - Selected features và feature importance
+- `metadata.pkl` - Model metadata (accuracy, f1_score, optimal_threshold, etc.)
+
+### 2.1. Test Model (Tùy chọn)
+
+Để kiểm tra model có load và predict đúng không:
+
+```bash
+cd Data
+python test_model.py
+```
+
+Script này sẽ:
+- Load XGBoost model từ `models/`
+- Test prediction với sample data
+- Hiển thị feature importance
+
+### 3. Chạy Backend Server
+
+```bash
+cd backend
+python app.py
+```
+
+Server sẽ chạy tại `http://localhost:5001` (mặc định)
+
+### 4. Mở Frontend
+
+Mở file `frontend/index.html` trong trình duyệt hoặc sử dụng local server:
+
+```bash
+cd frontend
+python -m http.server 8000
+```
+
+Truy cập: `http://localhost:8000`
