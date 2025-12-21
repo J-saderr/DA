@@ -1,7 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
 # Models
 Data/models/
 *.pkl
 *.joblib
+
+# Data files (too large for git)
+*.csv
+*.xlsx
+*.xls
 
 # IDE
 .vscode/
