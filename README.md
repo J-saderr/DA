@@ -1,6 +1,6 @@
 # Diabetes Prediction Web Application
 
-Ứng dụng web dự đoán bệnh tiểu đường sử dụng Machine Learning (XGBoost/LightGBM).
+Ứng dụng web dự đoán bệnh tiểu đường sử dụng Machine Learning (XGBoost).
 
 ## Cấu Trúc Dự Án
 
@@ -23,14 +23,16 @@ DA/
 ```
 ## Cài Đặt
 
-### 1. Backend
+### 1. Download data từ https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset
+
+### 2. Backend
 
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-### 2. Train Model (nếu chưa có)
+### 3. Train Model (nếu chưa có)
 
 ```bash
 cd Data
@@ -43,7 +45,7 @@ Model sẽ được lưu vào `Data/models/`:
 - `feature_selector.pkl` - Selected features và feature importance
 - `metadata.pkl` - Model metadata (accuracy, f1_score, optimal_threshold, etc.)
 
-### 2.1. Test Model (Tùy chọn)
+### 3.1. Test Model (Tùy chọn)
 
 Để kiểm tra model có load và predict đúng không:
 
@@ -57,7 +59,7 @@ Script này sẽ:
 - Test prediction với sample data
 - Hiển thị feature importance
 
-### 3. Chạy Backend Server
+### 4. Chạy Backend Server
 
 ```bash
 cd backend
@@ -66,7 +68,7 @@ python app.py
 
 Server sẽ chạy tại `http://localhost:5001` (mặc định)
 
-### 4. Mở Frontend
+### 5. Mở Frontend
 
 Mở file `frontend/index.html` trong trình duyệt hoặc sử dụng local server:
 
