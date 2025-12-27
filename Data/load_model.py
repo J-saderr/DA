@@ -10,6 +10,23 @@ import sys
 import random
 import os
 
+# Fix compatibility issue between LightGBM 4.1.0 and scikit-learn 1.8.0+
+# LightGBM uses force_all_finite parameter which was removed in sklearn 1.8.0
+try:
+    import sklearn.utils.validation as skval
+    original_check_array = skval.check_array
+    
+    def patched_check_array(*args, **kwargs):
+        # Remove force_all_finite if present (not supported in sklearn 1.8.0+)
+        if 'force_all_finite' in kwargs:
+            kwargs.pop('force_all_finite')
+        return original_check_array(*args, **kwargs)
+    
+    # Apply patch globally
+    skval.check_array = patched_check_array
+except ImportError:
+    pass
+
 # Set random seed cho reproducibility (nếu cần predict với randomness)
 RANDOM_SEED = 42
 random.seed(RANDOM_SEED)
@@ -40,7 +57,7 @@ def load_model():
             
             # Verify model type
             model_type = type(model).__name__
-            print(f"✅ Loaded {model_type} model (metadata: {model_name})")
+            print(f"Loaded {model_type} model (metadata: {model_name})")
             print(f"   Selected features: {len(feature_selector['selected_features'])}")
             print(f"   Accuracy: {metadata.get('accuracy', 0):.4f}")
             print(f"   Optimal threshold: {metadata.get('optimal_threshold', 0.5):.4f}")
@@ -93,15 +110,64 @@ def predict_diabetes(input_data, model_components=None):
             else:
                 # Default: 0 cho các features khác
                 df[feature] = 0
-                print(f"⚠️ Warning: Feature '{feature}' không có trong input, sử dụng giá trị mặc định 0")
+                print(f"Warning: Feature '{feature}' không có trong input, sử dụng giá trị mặc định 0")
     
     # Chọn đúng features và đúng thứ tự theo thứ tự trong selected_features
-    X = df[selected_features].values
+    # Ensure all selected_features exist in df
+    for feature in selected_features:
+        if feature not in df.columns:
+            df[feature] = 0
+    
+    # Select features in the exact order expected by the model
+    try:
+        X = df[selected_features].values
+    except KeyError as e:
+        missing = [f for f in selected_features if f not in df.columns]
+        raise KeyError(f"Missing required features: {missing}. Available: {list(df.columns)}")
+    
+    # Ensure data is clean (no NaN or inf values) before scaling
+    # Replace any NaN or inf with 0
+    X = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
+    
+    # Ensure X is a 2D array with correct shape
+    if len(X.shape) == 1:
+        X = X.reshape(1, -1)
+    
+    # Verify shape matches expected number of features
+    if X.shape[1] != len(selected_features):
+        raise ValueError(f"Feature count mismatch: expected {len(selected_features)} features, got {X.shape[1]}")
     
     # Scale data với scaler đã được train
-    X_scaled = scaler.transform(X)
+    # Handle scikit-learn version compatibility issues
+    try:
+        X_scaled = scaler.transform(X)
+    except (TypeError, ValueError) as e:
+        error_msg = str(e).lower()
+        if 'force_all_finite' in error_msg or 'unexpected keyword' in error_msg:
+            # Compatibility issue with scikit-learn versions
+            # Try to work around by ensuring clean data and using alternative method
+            X_clean = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
+            # Ensure proper dtype
+            X_clean = X_clean.astype(np.float64)
+            # Try transform again with clean data
+            try:
+                X_scaled = scaler.transform(X_clean)
+            except Exception as e2:
+                # Last resort: manually apply scaling if scaler has the attributes
+                # RobustScaler uses center_ (median) and scale_ (IQR)
+                if hasattr(scaler, 'center_') and hasattr(scaler, 'scale_'):
+                    X_scaled = (X_clean - scaler.center_) / scaler.scale_
+                # StandardScaler uses mean_ and scale_
+                elif hasattr(scaler, 'mean_') and hasattr(scaler, 'scale_'):
+                    X_scaled = (X_clean - scaler.mean_) / scaler.scale_
+                else:
+                    # If we can't manually transform, raise the original error
+                    raise Exception(f"Scaler transformation failed: {str(e2)}. Scaler type: {type(scaler).__name__}")
+        else:
+            raise
     
-    # Predict với XGBoost model
+    # Predict với model (XGBoost or LightGBM)
+    # The compatibility patch is applied at module import level
     proba = model.predict_proba(X_scaled)[:, 1]
     
     # Apply optimal threshold từ metadata
@@ -119,7 +185,7 @@ def predict_diabetes(input_data, model_components=None):
 if __name__ == "__main__":
     # Load model
     components = load_model()
-    print("✅ Model loaded successfully!")
+    print("Model loaded successfully!")
     print(f"Model type: {components['metadata']['best_model_name']}")
     print(f"Accuracy: {components['metadata']['accuracy']:.4f}")
     print(f"Optimal threshold: {components['metadata']['optimal_threshold']:.4f}")
@@ -142,7 +208,7 @@ if __name__ == "__main__":
     }
     
     result = predict_diabetes(example_input, components)
-    print(f"\n📊 Prediction Result:")
+    print(f"\nPrediction Result:")
     print(f"   Prediction: {'Diabetes' if result['prediction'] == 1 else 'No Diabetes'}")
     print(f"   Probability: {result['probability']:.4f}")
     print(f"   Confidence: {result['confidence']:.4f}")

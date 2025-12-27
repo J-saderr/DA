@@ -9,16 +9,12 @@ from pathlib import Path
 import random
 import numpy as np
 
-# Thêm thư mục Data vào path để import load_model
-sys.path.insert(0, str(Path(__file__).parent.parent / 'Data'))
-
 # Set random seed cho reproducibility (trước khi import các thư viện khác)
 RANDOM_SEED = 42
 random.seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 os.environ['PYTHONHASHSEED'] = str(RANDOM_SEED)
 
-from load_model import load_model, predict_diabetes
 import pandas as pd
 
 app = Flask(__name__)
@@ -26,19 +22,33 @@ CORS(app)  # Cho phép CORS để frontend có thể gọi API
 
 # Load model khi khởi động app
 try:
-    # Đổi working directory về Data để load model
-    original_dir = os.getcwd()
+    # Sử dụng absolute path để tránh vấn đề với Flask reloader
     data_dir = Path(__file__).parent.parent / 'Data'
-    if not data_dir.exists():
-        data_dir = Path(__file__).parent.parent / 'Data'
-    os.chdir(data_dir)
-    model_components = load_model()
-    os.chdir(original_dir)
-    print("✅ Model loaded successfully!")
+    models_dir = data_dir / 'models'
+    
+    # Thêm data_dir vào sys.path để import load_model
+    if str(data_dir) not in sys.path:
+        sys.path.insert(0, str(data_dir))
+    
+    # Import load_model functions
+    from load_model import load_model, predict_diabetes
+    
+    # Temporarily change to data_dir for loading (but restore immediately)
+    # This is needed because load_model uses relative paths
+    original_dir = os.getcwd()
+    try:
+        os.chdir(data_dir)
+        model_components = load_model()
+    finally:
+        os.chdir(original_dir)
+    
+    print("Model loaded successfully!")
 except Exception as e:
-    print(f"❌ Error loading model: {str(e)}")
+    print(f"Error loading model: {str(e)}")
     print(f"Current directory: {os.getcwd()}")
-    print(f"Looking for models in: {Path(__file__).parent.parent / 'Data' / 'models'}")
+    print(f"Looking for models in: {models_dir}")
+    import traceback
+    traceback.print_exc()
     model_components = None
 
 
@@ -87,6 +97,16 @@ def predict():
         # Feature engineering giống như trong test.py
         input_dict = data.copy()
         
+        # Convert all values to numeric, handling None/missing values
+        for key, value in input_dict.items():
+            if value is None or value == '':
+                input_dict[key] = 0
+            else:
+                try:
+                    input_dict[key] = float(value)
+                except (ValueError, TypeError):
+                    input_dict[key] = 0
+        
         # Tính toán interaction features
         if 'BMI' in input_dict and 'Age' in input_dict:
             input_dict['BMI_Age'] = float(input_dict['BMI']) * float(input_dict['Age'])
@@ -121,8 +141,14 @@ def predict():
         })
     
     except ValueError as e:
+        import traceback
+        print(f"ValueError in predict: {str(e)}")
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 400
     except Exception as e:
+        import traceback
+        print(f"Exception in predict: {str(e)}")
+        traceback.print_exc()
         return jsonify({'error': f'Prediction error: {str(e)}'}), 500
 
 
@@ -131,28 +157,28 @@ def get_recommendations(input_data, prediction_result):
     recommendations = []
     
     if prediction_result['prediction'] == 1:
-        recommendations.append("⚠️ Bạn có nguy cơ mắc bệnh tiểu đường. Nên tham khảo ý kiến bác sĩ.")
+        recommendations.append("Ban co nguy co mac benh tieu duong. Nen tham khao y kien bac si.")
     
     if input_data.get('BMI', 0) > 25:
-        recommendations.append("💡 BMI của bạn cao. Nên giảm cân và tập thể dục thường xuyên.")
+        recommendations.append("BMI cua ban cao. Nen giam can va tap the duc thuong xuyen.")
     
     if input_data.get('HighBP', 0) == 1:
-        recommendations.append("💡 Bạn có huyết áp cao. Nên kiểm soát huyết áp và theo dõi định kỳ.")
+        recommendations.append("Ban co huyet ap cao. Nen kiem soat huyet ap va theo doi dinh ky.")
     
     if input_data.get('HighChol', 0) == 1:
-        recommendations.append("💡 Bạn có cholesterol cao. Nên điều chỉnh chế độ ăn uống.")
+        recommendations.append("Ban co cholesterol cao. Nen dieu chinh che do an uong.")
     
     if input_data.get('PhysActivity', 0) == 0:
-        recommendations.append("💡 Nên tăng cường hoạt động thể chất ít nhất 30 phút mỗi ngày.")
+        recommendations.append("Nen tang cuong hoat dong the chat it nhat 30 phut moi ngay.")
     
     if input_data.get('Fruits', 0) == 0:
-        recommendations.append("💡 Nên ăn nhiều trái cây và rau quả trong chế độ ăn uống.")
+        recommendations.append("Nen an nhieu trai cay va rau qua trong che do an uong.")
     
     if input_data.get('Smoker', 0) == 1:
-        recommendations.append("💡 Hút thuốc làm tăng nguy cơ mắc bệnh. Nên bỏ thuốc lá.")
+        recommendations.append("Hut thuoc lam tang nguy co mac benh. Nen bo thuoc la.")
     
     if not recommendations:
-        recommendations.append("✅ Bạn đang có lối sống lành mạnh. Hãy tiếp tục duy trì!")
+        recommendations.append("Ban dang co loi song lanh manh. Hay tiep tuc duy tri!")
     
     return recommendations
 
@@ -217,5 +243,7 @@ if __name__ == '__main__':
     import os
     # Cho phép thay đổi port qua environment variable, mặc định 5001 (tránh conflict với AirPlay)
     port = int(os.environ.get('PORT', 5001))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    # Disable reloader để tránh vấn đề với directory changes
+    # Có thể bật lại bằng cách set use_reloader=True nếu cần
+    app.run(debug=True, host='0.0.0.0', port=port, use_reloader=False)
 

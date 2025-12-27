@@ -48,7 +48,7 @@ try:
 except ImportError:
     pass
 
-print(f"✅ Random seed đã được set thành {RANDOM_SEED} cho tất cả thư viện")
+print(f"Random seed da duoc set thanh {RANDOM_SEED} cho tat ca thu vien")
 
 # ============================================================================
 # PREPROCESSING: Check null, duplicated, outliers, noise, data type
@@ -262,7 +262,7 @@ except Exception as e:
 #         return cv_scores.mean()
     
 #     study_lgbm = optuna.create_study(direction='maximize', study_name='lgbm_tuning')
-#     study_lgbm.optimize(lgbm_objective, n_trials=50, show_progress_bar=False)
+#     study_lgbm.optimize(lgbm_objective, n_trials=1, show_progress_bar=False)
     
 #     lgbm = LGBMClassifier(**study_lgbm.best_params)
 #     lgbm.fit(X_train_scaled, y_train_resampled)
@@ -298,7 +298,7 @@ except Exception as e:
 #         'acc': acc_lgbm
 #     }
     
-#     print(f"\n📊 KẾT QUẢ TEST - LightGBM:")
+#     print(f"\nKET QUA TEST - LightGBM:")
 #     print(f"   Accuracy: {acc_lgbm:.4f} ({acc_lgbm*100:.2f}%)")
 #     print(f"   F1-Score: {f1_lgbm:.4f}")
 #     print(f"   ROC-AUC: {roc_auc_lgbm:.4f}")
@@ -312,7 +312,7 @@ except Exception as e:
 #         'Importance': lgbm.feature_importances_
 #     }).sort_values('Importance', ascending=False)
     
-#     print(f"\n📊 FEATURE IMPORTANCE - LightGBM (Top 10):")
+#     print(f"\nFEATURE IMPORTANCE - LightGBM (Top 10):")
 #     for idx, row in lgbm_feature_importance.head(10).iterrows():
 #         print(f"   {row['Feature']:30s}: {row['Importance']:.4f}")
     
@@ -484,8 +484,6 @@ if 'xgb' in models_results and 'f1_xgb' in locals() and 'optimal_threshold_xgb' 
 #             best_params['optimal_threshold'] = float(optimal_threshold_lgbm)
 #             best_params['model_type'] = 'LightGBM'
 
-# Không dùng ensemble - chỉ chọn best single model
-
 # Lưu best model và các components cần thiết
 if best_model is not None:
     # Tạo thư mục models nếu chưa có
@@ -512,7 +510,7 @@ if best_model is not None:
     if best_model_name == 'xgb':
         best_acc = models_results['xgb']['acc']
         best_f1 = f1_xgb if 'f1_xgb' in locals() else 0.0
-    # elif best_model_name == 'lgbm':
+    # if best_model_name == 'lgbm':
     #     best_acc = models_results['lgbm']['acc']
     #     best_f1 = f1_lgbm if 'f1_lgbm' in locals() else 0.0
     else:
